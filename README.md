@@ -80,7 +80,7 @@ talatum/
 └── instance/
 Installation
 Clone Repository
-git clone https://github.com/Talatum/flask-ecommerce.git
+git clone https://github.com/Talatum-Ecomerce-Website/flask-ecommerce.git
 cd flask-ecommerce
 Create Virtual Environment
 Windows
