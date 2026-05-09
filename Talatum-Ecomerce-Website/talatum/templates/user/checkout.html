@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% block title %}Checkout – Talatum{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="page-title mb-4"><i class="fas fa-lock me-2 text-gold"></i>Secure Checkout</h2>
+  <form method="post" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="row g-4">
+      <!-- Shipping Info -->
+      <div class="col-lg-7">
+        <div class="checkout-card">
+          <h5 class="checkout-section-title"><i class="fas fa-map-marker-alt me-2 text-gold"></i>Shipping Information</h5>
+          <div class="row g-3">
+            <div class="col-12">
+              {{ form.full_name.label(class='form-label') }}
+              {{ form.full_name(class='form-control' + (' is-invalid' if form.full_name.errors else ''),
+                 value=default_addr.full_name if default_addr else current_user.full_name) }}
+              {% for e in form.full_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              {{ form.phone.label(class='form-label') }}
+              {{ form.phone(class='form-control' + (' is-invalid' if form.phone.errors else ''),
+                 value=default_addr.phone if default_addr else current_user.phone) }}
+              {% for e in form.phone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              {{ form.address1.label(class='form-label') }}
+              {{ form.address1(class='form-control' + (' is-invalid' if form.address1.errors else ''),
+                 value=default_addr.address1 if default_addr else '') }}
+              {% for e in form.address1.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              {{ form.address2.label(class='form-label') }}
+              {{ form.address2(class='form-control', value=default_addr.address2 if default_addr else '') }}
+            </div>
+            <div class="col-md-6">
+              {{ form.city.label(class='form-label') }}
+              {{ form.city(class='form-control' + (' is-invalid' if form.city.errors else ''),
+                 value=default_addr.city if default_addr else '') }}
+              {% for e in form.city.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.state.label(class='form-label') }}
+              {{ form.state(class='form-control' + (' is-invalid' if form.state.errors else ''),
+                 value=default_addr.state if default_addr else '') }}
+              {% for e in form.state.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.postal_code.label(class='form-label') }}
+              {{ form.postal_code(class='form-control', value=default_addr.postal_code if default_addr else '') }}
+            </div>
+            <div class="col-md-6">
+              {{ form.country.label(class='form-label') }}
+              {{ form.country(class='form-control', value=default_addr.country if default_addr else 'Pakistan') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Method -->
+        <div class="checkout-card mt-4">
+          <h5 class="checkout-section-title"><i class="fas fa-credit-card me-2 text-gold"></i>Payment Method</h5>
+          <div class="payment-options">
+            <label class="payment-option active" id="codOption">
+              <input type="radio" name="payment_method" value="cod" checked onchange="selectPayment(this)"/>
+              <i class="fas fa-money-bill-wave text-gold"></i>
+              <div>
+                <strong>Cash on Delivery</strong>
+                <small class="d-block text-muted">Pay when your order arrives</small>
+              </div>
+            </label>
+            <label class="payment-option" id="cardOption">
+              <input type="radio" name="payment_method" value="card" onchange="selectPayment(this)"/>
+              <i class="fas fa-credit-card text-gold"></i>
+              <div>
+                <strong>Credit / Debit Card</strong>
+                <small class="d-block text-muted">Visa, Mastercard, etc.</small>
+              </div>
+            </label>
+            <label class="payment-option" id="paypalOption">
+              <input type="radio" name="payment_method" value="paypal" onchange="selectPayment(this)"/>
+              <i class="fab fa-paypal text-gold"></i>
+              <div>
+                <strong>PayPal</strong>
+                <small class="d-block text-muted">Pay via PayPal account</small>
+              </div>
+            </label>
+          </div>
+          <!-- Card fields (shown when card selected) -->
+          <div id="cardFields" class="mt-3 d-none">
+            <div class="row g-3">
+              <div class="col-12"><input type="text" class="form-control" placeholder="Card Number" maxlength="19"/></div>
+              <div class="col-6"><input type="text" class="form-control" placeholder="MM/YY"/></div>
+              <div class="col-6"><input type="text" class="form-control" placeholder="CVV" maxlength="4"/></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="checkout-card mt-4">
+          <h5 class="checkout-section-title"><i class="fas fa-sticky-note me-2 text-gold"></i>Order Notes (Optional)</h5>
+          {{ form.notes(class='form-control', rows=3, placeholder='Any special instructions...') }}
+        </div>
+      </div>
+
+      <!-- Order Summary -->
+      <div class="col-lg-5">
+        <div class="order-summary-card sticky-top" style="top:80px">
+          <h5 class="summary-title">Order Summary</h5>
+          {% for item in cart.items %}
+          <div class="checkout-item">
+            <img src="{{ url_for('static', filename='uploads/' + item.product.main_image) if item.product.main_image != 'default-product.jpg' else url_for('static', filename='images/placeholder.jpg') }}"
+                 alt="{{ item.product.name }}" class="checkout-item-img"/>
+            <div class="flex-grow-1">
+              <p class="mb-0 small fw-semibold">{{ item.product.name }}</p>
+              <small class="text-muted">Qty: {{ item.quantity }}</small>
+            </div>
+            <span class="fw-semibold">{{ item.subtotal | price }}</span>
+          </div>
+          {% endfor %}
+          <hr/>
+          <!-- Coupon -->
+          <div class="input-group mb-3">
+            {{ form.coupon_code(class='form-control', placeholder='Coupon code') }}
+            <button class="btn btn-outline-gold" type="button">Apply</button>
+          </div>
+          <div class="summary-row"><span>Subtotal</span><span>{{ cart.total | price }}</span></div>
+          <div class="summary-row"><span>Shipping</span><span>{{ 'Free' if cart.total >= 5000 else 'Rs.200' }}</span></div>
+          <div class="summary-row"><span>Tax (5%)</span><span>{{ (cart.total * 0.05) | price }}</span></div>
+          <hr/>
+          <div class="summary-total">
+            <span>Total</span>
+            <span>{{ (cart.total + (0 if cart.total >= 5000 else 200) + cart.total * 0.05) | price }}</span>
+          </div>
+          <button type="submit" class="btn btn-gold w-100 btn-lg mt-3">
+            <i class="fas fa-check-circle me-2"></i>Place Order
+          </button>
+          <div class="secure-badge mt-3 text-center">
+            <i class="fas fa-lock text-gold me-1"></i>
+            <small class="text-muted">Secured by 256-bit SSL encryption</small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function selectPayment(radio) {
+  document.querySelectorAll('.payment-option').forEach(o => o.classList.remove('active'));
+  radio.closest('.payment-option').classList.add('active');
+  document.getElementById('cardFields').classList.toggle('d-none', radio.value !== 'card');
+}
+</script>
+{% endblock %}

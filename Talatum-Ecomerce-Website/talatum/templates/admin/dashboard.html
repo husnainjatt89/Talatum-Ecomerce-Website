@@ -1,0 +1,163 @@
+{% extends 'admin/base.html' %}
+{% block title %}Dashboard – Talatum Admin{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block content %}
+
+<!-- Stats Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-xl-3">
+    <div class="admin-stat-card blue">
+      <div class="stat-icon blue"><i class="fas fa-users"></i></div>
+      <div class="stat-info">
+        <h3>{{ total_users }}</h3>
+        <p>Total Users</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="admin-stat-card green">
+      <div class="stat-icon green"><i class="fas fa-box"></i></div>
+      <div class="stat-info">
+        <h3>{{ total_products }}</h3>
+        <p>Products</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="admin-stat-card orange">
+      <div class="stat-icon orange"><i class="fas fa-shopping-cart"></i></div>
+      <div class="stat-info">
+        <h3>{{ total_orders }}</h3>
+        <p>Total Orders</p>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-xl-3">
+    <div class="admin-stat-card gold">
+      <div class="stat-icon gold"><i class="fas fa-coins"></i></div>
+      <div class="stat-info">
+        <h3>{{ "%.0f"|format(total_revenue/1000) }}K</h3>
+        <p>Revenue (Rs.)</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4 mb-4">
+  <!-- Sales Chart -->
+  <div class="col-lg-8">
+    <div class="admin-card">
+      <div class="admin-card-header">
+        <h6>Sales – Last 7 Days</h6>
+      </div>
+      <div class="admin-card-body">
+        <canvas id="salesChart" height="100"></canvas>
+      </div>
+    </div>
+  </div>
+  <!-- Order Status -->
+  <div class="col-lg-4">
+    <div class="admin-card">
+      <div class="admin-card-header"><h6>Order Status</h6></div>
+      <div class="admin-card-body">
+        <canvas id="statusChart" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Recent Orders -->
+  <div class="col-lg-8">
+    <div class="admin-card">
+      <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <h6>Recent Orders</h6>
+        <a href="{{ url_for('admin.orders') }}" class="btn btn-sm btn-outline-primary">View All</a>
+      </div>
+      <div class="admin-card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead><tr><th>Order #</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              {% for o in recent_orders %}
+              <tr>
+                <td><a href="{{ url_for('admin.order_detail', oid=o.id) }}" class="text-gold">{{ o.order_number }}</a></td>
+                <td>{{ o.user.full_name }}</td>
+                <td>{{ o.total | price }}</td>
+                <td><span class="badge bg-{{ o.status_label[1] }}">{{ o.status_label[0] }}</span></td>
+                <td>{{ o.created_at.strftime('%b %d') }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Low Stock & Alerts -->
+  <div class="col-lg-4">
+    <div class="admin-card">
+      <div class="admin-card-header d-flex justify-content-between align-items-center">
+        <h6><i class="fas fa-exclamation-triangle text-warning me-1"></i>Low Stock</h6>
+        <span class="badge bg-warning">{{ low_stock|length }}</span>
+      </div>
+      <div class="admin-card-body p-0">
+        {% for p in low_stock %}
+        <div class="low-stock-item">
+          <span>{{ p.name[:30] }}{% if p.name|length > 30 %}…{% endif %}</span>
+          <span class="badge bg-{{ 'danger' if p.stock == 0 else 'warning' }}">{{ p.stock }} left</span>
+        </div>
+        {% else %}
+        <p class="text-muted p-3 mb-0">All products well stocked!</p>
+        {% endfor %}
+      </div>
+    </div>
+    {% if pending_reviews > 0 %}
+    <div class="admin-card mt-3">
+      <div class="admin-card-body">
+        <div class="d-flex align-items-center justify-content-between">
+          <div><i class="fas fa-star text-warning me-2"></i><strong>{{ pending_reviews }}</strong> pending reviews</div>
+          <a href="{{ url_for('admin.reviews', pending=1) }}" class="btn btn-sm btn-warning">Review</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const salesData = {{ sales_data | tojson }};
+new Chart(document.getElementById('salesChart'), {
+  type: 'line',
+  data: {
+    labels: salesData.map(d => d.date),
+    datasets: [{
+      label: 'Revenue (Rs.)',
+      data: salesData.map(d => d.revenue),
+      borderColor: '#c9a84c',
+      backgroundColor: 'rgba(201,168,76,0.1)',
+      tension: 0.4, fill: true, pointRadius: 4,
+    }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } } }
+});
+
+const statusData = {{ status_counts | tojson }};
+const statusLabels = Object.keys(statusData);
+const statusValues = Object.values(statusData);
+new Chart(document.getElementById('statusChart'), {
+  type: 'doughnut',
+  data: {
+    labels: statusLabels,
+    datasets: [{ data: statusValues,
+      backgroundColor: ['#ffc107','#17a2b8','#007bff','#6f42c1','#fd7e14','#28a745','#dc3545','#6c757d'] }]
+  },
+  options: { responsive: true, plugins: { legend: { position: 'bottom' } } }
+});
+</script>
+{% endblock %}

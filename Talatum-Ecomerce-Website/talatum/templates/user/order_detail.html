@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Order {{ order.order_number }} – Talatum{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="d-flex align-items-center justify-content-between mb-4">
+    <h2 class="page-title mb-0">Order #{{ order.order_number }}</h2>
+    <a href="{{ url_for('user.orders') }}" class="btn btn-outline-secondary btn-sm">
+      <i class="fas fa-arrow-left me-1"></i>All Orders
+    </a>
+  </div>
+
+  <!-- Order Status Timeline -->
+  <div class="order-timeline mb-4">
+    {% set steps = [('pending','Pending','fas fa-clock'),('confirmed','Confirmed','fas fa-check'),
+                    ('processing','Processing','fas fa-cog'),('shipped','Shipped','fas fa-box'),
+                    ('out_for_delivery','Out for Delivery','fas fa-truck'),('delivered','Delivered','fas fa-home')] %}
+    {% set statuses = ['pending','confirmed','processing','shipped','out_for_delivery','delivered'] %}
+    {% set current_idx = statuses.index(order.status) if order.status in statuses else 0 %}
+    <div class="timeline-track">
+      {% for key, label, icon in steps %}
+      {% set idx = loop.index0 %}
+      <div class="timeline-step {{ 'completed' if idx < current_idx else ('active' if idx == current_idx else '') }}">
+        <div class="timeline-icon"><i class="{{ icon }}"></i></div>
+        <span class="timeline-label">{{ label }}</span>
+      </div>
+      {% if not loop.last %}<div class="timeline-line {{ 'completed' if idx < current_idx }}"></div>{% endif %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <!-- Items -->
+    <div class="col-lg-8">
+      <div class="checkout-card">
+        <h5 class="checkout-section-title">Order Items</h5>
+        {% for item in order.items %}
+        <div class="checkout-item">
+          <img src="{{ url_for('static', filename='uploads/' + item.product_img) if item.product_img and item.product_img != 'default-product.jpg' else url_for('static', filename='images/placeholder.jpg') }}"
+               alt="{{ item.product_name }}" class="checkout-item-img"/>
+          <div class="flex-grow-1">
+            <p class="mb-0 fw-semibold">{{ item.product_name }}</p>
+            {% if item.variant %}<small class="text-muted">{{ item.variant }}</small>{% endif %}
+            <small class="d-block text-muted">Qty: {{ item.quantity }} × {{ item.price | price }}</small>
+          </div>
+          <span class="fw-semibold">{{ item.subtotal | price }}</span>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Shipping Address -->
+      <div class="checkout-card mt-3">
+        <h5 class="checkout-section-title"><i class="fas fa-map-marker-alt me-2 text-gold"></i>Shipping Address</h5>
+        <p class="mb-1"><strong>{{ order.ship_name }}</strong></p>
+        <p class="mb-1">{{ order.ship_phone }}</p>
+        <p class="mb-1">{{ order.ship_address1 }}{% if order.ship_address2 %}, {{ order.ship_address2 }}{% endif %}</p>
+        <p class="mb-0">{{ order.ship_city }}, {{ order.ship_state }} {{ order.ship_postal }} – {{ order.ship_country }}</p>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="col-lg-4">
+      <div class="order-summary-card">
+        <h5 class="summary-title">Order Summary</h5>
+        <div class="summary-row"><span>Order Date</span><span>{{ order.created_at.strftime('%b %d, %Y') }}</span></div>
+        <div class="summary-row"><span>Payment</span><span class="text-capitalize">{{ order.payment_method }}</span></div>
+        <div class="summary-row">
+          <span>Status</span>
+          <span class="badge bg-{{ order.status_label[1] }}">{{ order.status_label[0] }}</span>
+        </div>
+        <hr/>
+        <div class="summary-row"><span>Subtotal</span><span>{{ order.subtotal | price }}</span></div>
+        <div class="summary-row"><span>Shipping</span><span>{{ order.shipping_cost | price }}</span></div>
+        <div class="summary-row"><span>Tax</span><span>{{ order.tax | price }}</span></div>
+        {% if order.discount > 0 %}
+        <div class="summary-row text-success"><span>Discount</span><span>-{{ order.discount | price }}</span></div>
+        {% endif %}
+        <hr/>
+        <div class="summary-total"><span>Total</span><span>{{ order.total | price }}</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

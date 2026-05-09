@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block title %}{{ product.name }} – Talatum{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ url_for('user.home') }}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ url_for('user.products') }}">Products</a></li>
+      {% if product.category %}
+      <li class="breadcrumb-item"><a href="{{ url_for('user.category', slug=product.category.slug) }}">{{ product.category.name }}</a></li>
+      {% endif %}
+      <li class="breadcrumb-item active">{{ product.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+    <!-- Images Gallery -->
+    <div class="col-lg-6">
+      <div class="product-gallery">
+        <div class="main-image-wrapper">
+          {% set images = product.images.all() %}
+          {% if images %}
+          <img src="{{ url_for('static', filename='uploads/' + images[0].image_url) }}"
+               alt="{{ product.name }}" class="main-product-image" id="mainImage"/>
+          {% else %}
+          <img src="{{ url_for('static', filename='images/placeholder.jpg') }}"
+               alt="{{ product.name }}" class="main-product-image" id="mainImage"/>
+          {% endif %}
+          <!-- Badges -->
+          <div class="detail-badges">
+            {% if product.is_flash_sale %}<span class="badge-sale">SALE</span>{% endif %}
+            {% if product.is_new_arrival %}<span class="badge-new">NEW</span>{% endif %}
+            {% if product.is_limited %}<span class="badge-limited">LIMITED</span>{% endif %}
+            {% if product.discount_percent > 0 %}<span class="badge-discount">-{{ product.discount_percent }}%</span>{% endif %}
+          </div>
+        </div>
+        {% if images|length > 1 %}
+        <div class="thumbnail-strip mt-3">
+          {% for img in images %}
+          <img src="{{ url_for('static', filename='uploads/' + img.image_url) }}"
+               alt="{{ product.name }}" class="thumb-img {{ 'active' if loop.first }}"
+               onclick="document.getElementById('mainImage').src=this.src; document.querySelectorAll('.thumb-img').forEach(t=>t.classList.remove('active')); this.classList.add('active')"/>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Product Info -->
+    <div class="col-lg-6">
+      <div class="product-detail-info">
+        {% if product.brand %}<span class="detail-brand">{{ product.brand }}</span>{% endif %}
+        <h1 class="detail-title">{{ product.name }}</h1>
+
+        <!-- Rating -->
+        <div class="detail-rating mb-3">
+          {% for i in range(5) %}
+          <i class="fas fa-star {{ 'text-gold' if i < product.avg_rating|int else 'text-muted' }}"></i>
+          {% endfor %}
+          <span class="ms-2 text-muted">({{ product.review_count }} reviews)</span>
+          <span class="ms-2 text-muted">|</span>
+          <span class="ms-2 {{ 'text-success' if product.stock > 0 else 'text-danger' }}">
+            <i class="fas fa-{{ 'check-circle' if product.stock > 0 else 'times-circle' }} me-1"></i>
+            {{ 'In Stock (' + product.stock|string + ')' if product.stock > 0 else 'Out of Stock' }}
+          </span>
+        </div>
+
+        <!-- Price -->
+        <div class="detail-price mb-3">
+          {% if product.sale_price %}
+          <span class="detail-price-current">{{ product.sale_price | price }}</span>
+          <span class="detail-price-original">{{ product.price | price }}</span>
+          <span class="detail-price-save">Save {{ product.discount_percent }}%</span>
+          {% else %}
+          <span class="detail-price-current">{{ product.price | price }}</span>
+          {% endif %}
+        </div>
+
+        {% if product.short_desc %}
+        <p class="detail-short-desc">{{ product.short_desc }}</p>
+        {% endif %}
+
+        <!-- Flags -->
+        <div class="detail-flags mb-3">
+          {% if product.cod_available %}
+          <span class="detail-flag"><i class="fas fa-money-bill-wave me-1 text-gold"></i>Cash on Delivery Available</span>
+          {% endif %}
+          {% if product.free_shipping %}
+          <span class="detail-flag"><i class="fas fa-truck me-1 text-gold"></i>Free Shipping</span>
+          {% endif %}
+        </div>
+
+        <!-- Add to Cart Form -->
+        {% if product.stock > 0 %}
+        <form action="{{ url_for('user.add_to_cart') }}" method="post" class="add-cart-detail-form">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <input type="hidden" name="product_id" value="{{ product.id }}"/>
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="qty-control">
+              <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+              <input type="number" name="quantity" id="qtyInput" value="1" min="1" max="{{ product.stock }}" class="qty-input"/>
+              <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+            </div>
+            <button type="submit" class="btn btn-gold btn-lg flex-grow-1">
+              <i class="fas fa-shopping-bag me-2"></i>Add to Cart
+            </button>
+          </div>
+          <button type="submit" formaction="{{ url_for('user.checkout') }}" class="btn btn-dark w-100 btn-lg">
+            <i class="fas fa-bolt me-2"></i>Buy Now
+          </button>
+        </form>
+        {% else %}
+        <button class="btn btn-secondary btn-lg w-100" disabled>Out of Stock</button>
+        {% endif %}
+
+        <!-- Wishlist & Share -->
+        <div class="d-flex gap-3 mt-3">
+          {% if current_user.is_authenticated %}
+          <form action="{{ url_for('user.toggle_wishlist', product_id=product.id) }}" method="post">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button type="submit" class="btn btn-outline-secondary">
+              <i class="fas fa-heart {{ 'text-danger' if in_wishlist else '' }} me-1"></i>
+              {{ 'Remove from Wishlist' if in_wishlist else 'Add to Wishlist' }}
+            </button>
+          </form>
+          {% endif %}
+          <button class="btn btn-outline-secondary" onclick="navigator.share ? navigator.share({title:'{{ product.name }}',url:window.location.href}) : copyLink()">
+            <i class="fas fa-share-alt me-1"></i>Share
+          </button>
+        </div>
+
+        <!-- Delivery Info -->
+        <div class="delivery-info mt-4">
+          <div class="delivery-item"><i class="fas fa-shield-alt text-gold"></i><span>100% Genuine & Authentic Product</span></div>
+          <div class="delivery-item"><i class="fas fa-undo text-gold"></i><span>Easy Returns within 7 days</span></div>
+          <div class="delivery-item"><i class="fas fa-lock text-gold"></i><span>Secure Payment</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Description & Reviews Tabs -->
+  <div class="mt-5">
+    <ul class="nav nav-tabs detail-tabs" id="detailTabs">
+      <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#descTab">Description</button></li>
+      <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#reviewsTab">Reviews ({{ product.review_count }})</button></li>
+    </ul>
+    <div class="tab-content detail-tab-content">
+      <div class="tab-pane fade show active" id="descTab">
+        <div class="product-description">{{ product.description }}</div>
+      </div>
+      <div class="tab-pane fade" id="reviewsTab">
+        <!-- Review Form -->
+        {% if current_user.is_authenticated %}
+        <div class="review-form-section mb-4">
+          <h5>Write a Review</h5>
+          <form action="{{ url_for('user.add_review', product_id=product.id) }}" method="post">
+            {{ form.hidden_tag() }}
+            <div class="row g-3">
+              <div class="col-md-3">
+                {{ form.rating(class='form-select') }}
+              </div>
+              <div class="col-md-9">
+                {{ form.title(class='form-control', placeholder='Review title') }}
+              </div>
+              <div class="col-12">
+                {{ form.body(class='form-control', rows=4, placeholder='Share your experience...') }}
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-gold">Submit Review</button>
+              </div>
+            </div>
+          </form>
+        </div>
+        {% endif %}
+        <!-- Reviews List -->
+        {% if reviews %}
+        {% for r in reviews %}
+        <div class="review-item">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <strong>{{ r.user.full_name }}</strong>
+              <div class="stars-small">
+                {% for i in range(5) %}<i class="fas fa-star {{ 'text-gold' if i < r.rating else 'text-muted' }}"></i>{% endfor %}
+              </div>
+              {% if r.title %}<p class="review-title mb-1">{{ r.title }}</p>{% endif %}
+              <p class="review-body">{{ r.body }}</p>
+            </div>
+            <small class="text-muted">{{ r.created_at.strftime('%b %d, %Y') }}</small>
+          </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <p class="text-muted py-3">No reviews yet. Be the first to review!</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  {% if related %}
+  <section class="mt-5">
+    <h4 class="section-title mb-4">You May Also Like</h4>
+    <div class="row g-3">
+      {% for p in related %}
+      <div class="col-6 col-md-4 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function changeQty(delta) {
+  const input = document.getElementById('qtyInput');
+  const max   = parseInt(input.max);
+  let val = parseInt(input.value) + delta;
+  if (val < 1) val = 1;
+  if (val > max) val = max;
+  input.value = val;
+}
+function copyLink() {
+  navigator.clipboard.writeText(window.location.href);
+  alert('Link copied!');
+}
+</script>
+{% endblock %}

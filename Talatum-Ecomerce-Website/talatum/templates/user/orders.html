@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block title %}My Orders – Talatum{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <h2 class="page-title mb-4"><i class="fas fa-box me-2 text-gold"></i>My Orders</h2>
+  {% if orders %}
+  <div class="row g-3">
+    {% for o in orders %}
+    <div class="col-12">
+      <div class="order-card">
+        <div class="order-card-header">
+          <div>
+            <strong>{{ o.order_number }}</strong>
+            <span class="text-muted ms-3 small">{{ o.created_at.strftime('%B %d, %Y') }}</span>
+          </div>
+          <span class="badge bg-{{ o.status_label[1] }}">{{ o.status_label[0] }}</span>
+        </div>
+        <div class="order-card-body">
+          <div class="order-items-preview">
+            {% for item in o.items.limit(3) %}
+            <img src="{{ url_for('static', filename='uploads/' + item.product_img) if item.product_img and item.product_img != 'default-product.jpg' else url_for('static', filename='images/placeholder.jpg') }}"
+                 alt="{{ item.product_name }}" class="order-preview-img" title="{{ item.product_name }}"/>
+            {% endfor %}
+            {% if o.items.count() > 3 %}
+            <span class="more-items">+{{ o.items.count() - 3 }} more</span>
+            {% endif %}
+          </div>
+          <div class="order-card-total">
+            <span class="text-muted small">{{ o.items.count() }} item(s)</span>
+            <strong class="d-block">{{ o.total | price }}</strong>
+          </div>
+          <a href="{{ url_for('user.order_detail', order_number=o.order_number) }}" class="btn btn-outline-gold btn-sm">
+            View Details
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state text-center py-5">
+    <i class="fas fa-box-open fa-4x text-muted mb-4"></i>
+    <h4>No orders yet</h4>
+    <a href="{{ url_for('user.products') }}" class="btn btn-gold btn-lg mt-2">Start Shopping</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

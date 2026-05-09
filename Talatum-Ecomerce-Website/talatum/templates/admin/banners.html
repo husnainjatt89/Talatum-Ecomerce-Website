@@ -1,0 +1,33 @@
+{% extends 'admin/base.html' %}
+{% block title %}Banners – Admin{% endblock %}
+{% block page_title %}Banners{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-end mb-4">
+  <a href="{{ url_for('admin.add_banner') }}" class="btn btn-gold"><i class="fas fa-plus me-1"></i>Add Banner</a>
+</div>
+<div class="row g-3">
+  {% for b in banners %}
+  <div class="col-md-6">
+    <div class="admin-card">
+      <div class="admin-card-body">
+        {% if b.image %}
+        <img src="{{ url_for('static', filename='uploads/' + b.image) }}" class="img-fluid rounded mb-3" style="max-height:150px;object-fit:cover;width:100%"/>
+        {% endif %}
+        <h6>{{ b.title }}</h6>
+        <p class="text-muted small">{{ b.subtitle }}</p>
+        <div class="d-flex justify-content-between align-items-center">
+          <span class="badge bg-{{ 'success' if b.is_active else 'secondary' }}">{{ 'Active' if b.is_active else 'Inactive' }}</span>
+          <form action="{{ url_for('admin.delete_banner', bid=b.id) }}" method="post"
+                onsubmit="return confirm('Delete banner?')">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% else %}
+  <div class="col-12 text-center text-muted py-4">No banners yet.</div>
+  {% endfor %}
+</div>
+{% endblock %}

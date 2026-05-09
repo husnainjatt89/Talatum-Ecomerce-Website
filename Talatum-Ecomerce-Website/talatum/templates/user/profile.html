@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}My Profile – Talatum{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-7">
+      <div class="checkout-card">
+        <h4 class="checkout-section-title mb-4"><i class="fas fa-user me-2 text-gold"></i>Edit Profile</h4>
+        <form method="post" enctype="multipart/form-data" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="text-center mb-4">
+            <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) if current_user.avatar != 'default-avatar.png' else url_for('static', filename='images/default-avatar.png') }}"
+                 alt="Avatar" class="dashboard-avatar mb-2" id="avatarPreview"/>
+            <div>{{ form.avatar(class='form-control', onchange='previewAvatar(this)') }}</div>
+          </div>
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.first_name.label(class='form-label') }}
+              {{ form.first_name(class='form-control' + (' is-invalid' if form.first_name.errors else '')) }}
+              {% for e in form.first_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.last_name.label(class='form-label') }}
+              {{ form.last_name(class='form-control' + (' is-invalid' if form.last_name.errors else '')) }}
+              {% for e in form.last_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-control" value="{{ current_user.email }}" disabled/>
+            </div>
+            <div class="col-12">
+              {{ form.phone.label(class='form-label') }}
+              {{ form.phone(class='form-control') }}
+            </div>
+          </div>
+          <button type="submit" class="btn btn-gold mt-4">Save Changes</button>
+          <a href="{{ url_for('user.change_password') }}" class="btn btn-outline-secondary mt-4 ms-2">Change Password</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block extra_js %}
+<script>
+function previewAvatar(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => document.getElementById('avatarPreview').src = e.target.result;
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+{% endblock %}

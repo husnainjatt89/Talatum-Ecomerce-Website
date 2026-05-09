@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}My Dashboard – Talatum{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row g-4">
+    <!-- Sidebar -->
+    <div class="col-lg-3">
+      <div class="dashboard-sidebar">
+        <div class="user-avatar-section text-center mb-4">
+          <img src="{{ url_for('static', filename='uploads/' + current_user.avatar) if current_user.avatar != 'default-avatar.png' else url_for('static', filename='images/default-avatar.png') }}"
+               alt="{{ current_user.full_name }}" class="dashboard-avatar"/>
+          <h6 class="mt-2 mb-0">{{ current_user.full_name }}</h6>
+          <small class="text-muted">{{ current_user.email }}</small>
+        </div>
+        <nav class="dashboard-nav">
+          <a href="{{ url_for('user.dashboard') }}" class="dashboard-nav-item active"><i class="fas fa-tachometer-alt"></i>Dashboard</a>
+          <a href="{{ url_for('user.orders') }}" class="dashboard-nav-item"><i class="fas fa-box"></i>My Orders</a>
+          <a href="{{ url_for('user.wishlist') }}" class="dashboard-nav-item"><i class="fas fa-heart"></i>Wishlist <span class="badge bg-gold ms-auto">{{ wishlist_count }}</span></a>
+          <a href="{{ url_for('user.addresses') }}" class="dashboard-nav-item"><i class="fas fa-map-marker-alt"></i>Addresses</a>
+          <a href="{{ url_for('user.profile') }}" class="dashboard-nav-item"><i class="fas fa-user"></i>Profile</a>
+          <a href="{{ url_for('user.notifications') }}" class="dashboard-nav-item"><i class="fas fa-bell"></i>Notifications {% if notif_count > 0 %}<span class="badge bg-danger ms-auto">{{ notif_count }}</span>{% endif %}</a>
+          <a href="{{ url_for('user.change_password') }}" class="dashboard-nav-item"><i class="fas fa-lock"></i>Change Password</a>
+          <a href="{{ url_for('user.logout') }}" class="dashboard-nav-item text-danger"><i class="fas fa-sign-out-alt"></i>Logout</a>
+        </nav>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9">
+      <h4 class="page-title mb-4">Welcome back, {{ current_user.first_name }}!</h4>
+
+      <!-- Stats Cards -->
+      <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <i class="fas fa-box text-gold"></i>
+            <h3>{{ orders|length }}</h3>
+            <p>Total Orders</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <i class="fas fa-heart text-gold"></i>
+            <h3>{{ wishlist_count }}</h3>
+            <p>Wishlist Items</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <i class="fas fa-bell text-gold"></i>
+            <h3>{{ notif_count }}</h3>
+            <p>Notifications</p>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="stat-card">
+            <i class="fas fa-shopping-bag text-gold"></i>
+            <h3>{{ cart_count }}</h3>
+            <p>Cart Items</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Orders -->
+      <div class="checkout-card">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Recent Orders</h5>
+          <a href="{{ url_for('user.orders') }}" class="btn btn-outline-gold btn-sm">View All</a>
+        </div>
+        {% if orders %}
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead><tr><th>Order #</th><th>Date</th><th>Items</th><th>Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {% for o in orders %}
+              <tr>
+                <td><strong>{{ o.order_number }}</strong></td>
+                <td>{{ o.created_at.strftime('%b %d, %Y') }}</td>
+                <td>{{ o.items.count() }}</td>
+                <td>{{ o.total | price }}</td>
+                <td><span class="badge bg-{{ o.status_label[1] }}">{{ o.status_label[0] }}</span></td>
+                <td><a href="{{ url_for('user.order_detail', order_number=o.order_number) }}" class="btn btn-sm btn-outline-secondary">View</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-4">
+          <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+          <p class="text-muted">No orders yet.</p>
+          <a href="{{ url_for('user.products') }}" class="btn btn-gold">Start Shopping</a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

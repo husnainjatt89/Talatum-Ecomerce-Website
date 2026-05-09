@@ -1,0 +1,38 @@
+{% extends 'admin/base.html' %}
+{% block title %}{{ title }} – Admin{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="admin-card">
+      <div class="admin-card-body">
+        <form method="post" enctype="multipart/form-data">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Title</label>
+            <input type="text" name="title" class="form-control" placeholder="Banner title"/>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Subtitle</label>
+            <input type="text" name="subtitle" class="form-control" placeholder="Banner subtitle"/>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Link URL</label>
+            <input type="text" name="link" class="form-control" placeholder="/products"/>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Display Order</label>
+            <input type="number" name="order" class="form-control" value="0"/>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Banner Image</label>
+            <input type="file" name="image" class="form-control" accept="image/*"/>
+          </div>
+          <button type="submit" class="btn btn-gold">Add Banner</button>
+          <a href="{{ url_for('admin.banners') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

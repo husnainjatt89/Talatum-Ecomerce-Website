@@ -1,0 +1,118 @@
+{% extends 'admin/base.html' %}
+{% block title %}{{ title }} – Admin{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+{% block content %}
+<form method="post" enctype="multipart/form-data" novalidate>
+  {{ form.hidden_tag() }}
+  <div class="row g-4">
+    <!-- Main Info -->
+    <div class="col-lg-8">
+      <div class="admin-card">
+        <div class="admin-card-header"><h6>Product Information</h6></div>
+        <div class="admin-card-body">
+          <div class="mb-3">
+            {{ form.name.label(class='form-label fw-semibold') }}
+            {{ form.name(class='form-control' + (' is-invalid' if form.name.errors else '')) }}
+            {% for e in form.name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="mb-3">
+            {{ form.short_desc.label(class='form-label fw-semibold') }}
+            {{ form.short_desc(class='form-control') }}
+          </div>
+          <div class="mb-3">
+            {{ form.description.label(class='form-label fw-semibold') }}
+            {{ form.description(class='form-control', rows=6) }}
+            {% for e in form.description.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <div class="row g-3">
+            <div class="col-md-4">
+              {{ form.price.label(class='form-label fw-semibold') }}
+              {{ form.price(class='form-control' + (' is-invalid' if form.price.errors else '')) }}
+              {% for e in form.price.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-4">
+              {{ form.sale_price.label(class='form-label fw-semibold') }}
+              {{ form.sale_price(class='form-control') }}
+            </div>
+            <div class="col-md-4">
+              {{ form.stock.label(class='form-label fw-semibold') }}
+              {{ form.stock(class='form-control' + (' is-invalid' if form.stock.errors else '')) }}
+              {% for e in form.stock.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.sku.label(class='form-label fw-semibold') }}
+              {{ form.sku(class='form-control') }}
+            </div>
+            <div class="col-md-6">
+              {{ form.brand.label(class='form-label fw-semibold') }}
+              {{ form.brand(class='form-control') }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Images -->
+      <div class="admin-card mt-4">
+        <div class="admin-card-header"><h6>Product Images</h6></div>
+        <div class="admin-card-body">
+          {% if product %}
+          <div class="existing-images mb-3">
+            {% for img in product.images %}
+            <div class="existing-img-item">
+              <img src="{{ url_for('static', filename='uploads/' + img.image_url) }}" alt=""/>
+              <button type="button" class="remove-img-btn"
+                      onclick="deleteImage({{ img.id }}, this)">×</button>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {{ form.images(class='form-control', multiple=True, accept='image/*') }}
+          <small class="text-muted">Upload multiple images. First image will be the primary.</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <div class="admin-card">
+        <div class="admin-card-header"><h6>Category & Options</h6></div>
+        <div class="admin-card-body">
+          <div class="mb-3">
+            {{ form.category_id.label(class='form-label fw-semibold') }}
+            {{ form.category_id(class='form-select' + (' is-invalid' if form.category_id.errors else '')) }}
+            {% for e in form.category_id.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+          </div>
+          <hr/>
+          <h6 class="mb-3">Product Flags</h6>
+          {% for field in [form.is_featured, form.is_bestseller, form.is_new_arrival, form.is_flash_sale, form.is_premium, form.is_limited, form.cod_available, form.free_shipping] %}
+          <div class="form-check form-switch mb-2">
+            {{ field(class='form-check-input') }}
+            {{ field.label(class='form-check-label') }}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="mt-3 d-grid gap-2">
+        <button type="submit" class="btn btn-gold btn-lg">
+          <i class="fas fa-save me-2"></i>{{ 'Update Product' if product else 'Add Product' }}
+        </button>
+        <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">Cancel</a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}
+{% block extra_js %}
+<script>
+async function deleteImage(imgId, btn) {
+  if (!confirm('Delete this image?')) return;
+  const res = await fetch(`/admin/products/image/delete/${imgId}`, {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token() }}'}
+  });
+  if ((await res.json()).success) {
+    btn.closest('.existing-img-item').remove();
+  }
+}
+</script>
+{% endblock %}

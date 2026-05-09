@@ -1,0 +1,86 @@
+<div class="product-card h-100">
+  <!-- Badges -->
+  <div class="product-badges">
+    {% if p.is_flash_sale %}<span class="badge-sale">SALE</span>{% endif %}
+    {% if p.is_new_arrival %}<span class="badge-new">NEW</span>{% endif %}
+    {% if p.is_limited %}<span class="badge-limited">LIMITED</span>{% endif %}
+    {% if p.is_premium %}<span class="badge-premium">PREMIUM</span>{% endif %}
+    {% if p.discount_percent > 0 %}<span class="badge-discount">-{{ p.discount_percent }}%</span>{% endif %}
+  </div>
+
+  <!-- Wishlist -->
+  {% if current_user.is_authenticated %}
+  <form action="{{ url_for('user.toggle_wishlist', product_id=p.id) }}" method="post" class="wishlist-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="wishlist-btn" title="Wishlist">
+      <i class="fas fa-heart"></i>
+    </button>
+  </form>
+  {% endif %}
+
+  <!-- Image -->
+  <a href="{{ url_for('user.product_detail', slug=p.slug) }}" class="product-img-link d-block">
+    <div class="product-img-wrapper">
+      {% if p.main_image and p.main_image != 'default-product.jpg' %}
+      <img src="{{ url_for('static', filename='uploads/' + p.main_image) }}"
+           alt="{{ p.name }}" class="product-img" loading="lazy"/>
+      {% else %}
+      <img src="{{ url_for('static', filename='images/placeholder.jpg') }}"
+           alt="{{ p.name }}" class="product-img" loading="lazy"/>
+      {% endif %}
+      <div class="product-overlay">
+        <span class="quick-view-btn">Quick View</span>
+      </div>
+    </div>
+  </a>
+
+  <!-- Info -->
+  <div class="product-info">
+    {% if p.brand %}<span class="product-brand">{{ p.brand }}</span>{% endif %}
+    <h3 class="product-name mb-1">
+      <a href="{{ url_for('user.product_detail', slug=p.slug) }}">{{ p.name }}</a>
+    </h3>
+
+    <!-- Rating -->
+    {% if p.avg_rating > 0 %}
+    <div class="product-rating">
+      {% for i in range(5) %}
+        <i class="fas fa-star {{ 'text-gold' if i < p.avg_rating|int else 'text-muted' }}"></i>
+      {% endfor %}
+      <span class="rating-count">({{ p.review_count }})</span>
+    </div>
+    {% endif %}
+
+    <!-- Price -->
+    <div class="product-price">
+      {% if p.sale_price %}
+      <span class="price-current">Rs.{{ "{:,.0f}".format(p.sale_price) }}</span>
+      <span class="price-original">Rs.{{ "{:,.0f}".format(p.price) }}</span>
+      {% else %}
+      <span class="price-current">Rs.{{ "{:,.0f}".format(p.price) }}</span>
+      {% endif %}
+    </div>
+
+    <!-- Flags -->
+    <div class="product-flags">
+      {% if p.cod_available %}<span class="flag-cod"><i class="fas fa-money-bill-wave me-1"></i>COD</span>{% endif %}
+      {% if p.free_shipping %}<span class="flag-ship"><i class="fas fa-truck me-1"></i>Free Ship</span>{% endif %}
+    </div>
+
+    <!-- Add to Cart -->
+    <div class="mt-auto pt-2">
+      {% if p.stock > 0 %}
+      <form action="{{ url_for('user.add_to_cart') }}" method="post" class="add-cart-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <input type="hidden" name="product_id" value="{{ p.id }}"/>
+        <input type="hidden" name="quantity" value="1"/>
+        <button type="submit" class="btn btn-gold w-100 btn-sm">
+          <i class="fas fa-shopping-bag me-1"></i>Add to Cart
+        </button>
+      </form>
+      {% else %}
+      <button class="btn btn-secondary w-100 btn-sm" disabled>Out of Stock</button>
+      {% endif %}
+    </div>
+  </div>
+</div>

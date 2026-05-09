@@ -1,0 +1,384 @@
+{% extends 'base.html' %}
+{% block title %}Talatum – Her Nefeste Zarafet | Exclusive Perfumery & Fashion{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero Slider ─────────────────────────────────────────────────────────── -->
+<section class="hero-section">
+  <div id="heroCarousel" class="carousel slide carousel-fade" data-bs-ride="carousel" data-bs-interval="5000">
+    <div class="carousel-indicators">
+      {% for b in banners %}
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="{{ loop.index0 }}"
+              class="{{ 'active' if loop.first }}"></button>
+      {% endfor %}
+      {% if not banners %}
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#heroCarousel" data-bs-slide-to="1"></button>
+      {% endif %}
+    </div>
+    <div class="carousel-inner">
+      {% for b in banners %}
+      <div class="carousel-item {{ 'active' if loop.first }}">
+        <div class="hero-slide" style="background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 50%, #0d0d0d 100%);">
+          <div class="container h-100">
+            <div class="row h-100 align-items-center">
+              <div class="col-lg-6">
+                <div class="hero-content animate-fade-up">
+                  <span class="hero-badge">New Collection</span>
+                  <h1 class="hero-title">{{ b.title }}</h1>
+                  <p class="hero-subtitle">{{ b.subtitle }}</p>
+                  <div class="hero-actions">
+                    <a href="{{ b.link or url_for('user.products') }}" class="btn btn-gold btn-lg me-3">
+                      Shop Now <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                    <a href="{{ url_for('user.products') }}" class="btn btn-outline-light btn-lg">
+                      Explore All
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <!-- Default slides if no banners -->
+      <div class="carousel-item active">
+        <div class="hero-slide hero-slide-1">
+          <div class="container h-100">
+            <div class="row h-100 align-items-center">
+              <div class="col-lg-6">
+                <div class="hero-content animate-fade-up">
+                  <span class="hero-badge">Exclusive Collection</span>
+                  <h1 class="hero-title">Introducing<br><span class="text-gold">Wild Vetiver</span></h1>
+                  <p class="hero-subtitle">Experience the finest luxury fragrances. Established to redefine the world of niche lifestyle.</p>
+                  <div class="hero-actions">
+                    <a href="{{ url_for('user.products') }}" class="btn btn-gold btn-lg me-3">Shop Now <i class="fas fa-arrow-right ms-2"></i></a>
+                    <a href="{{ url_for('user.products') }}" class="btn btn-outline-light btn-lg">Explore All</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="carousel-item">
+        <div class="hero-slide hero-slide-2">
+          <div class="container h-100">
+            <div class="row h-100 align-items-center">
+              <div class="col-lg-6">
+                <div class="hero-content animate-fade-up">
+                  <span class="hero-badge">Premium Fashion</span>
+                  <h1 class="hero-title">Luxury<br><span class="text-gold">Fashion</span></h1>
+                  <p class="hero-subtitle">Curated portfolio of brands tailored to meet the desires of a discerning clientele.</p>
+                  <div class="hero-actions">
+                    <a href="{{ url_for('user.products') }}?category=men-fashion" class="btn btn-gold btn-lg me-3">Men's Collection</a>
+                    <a href="{{ url_for('user.products') }}?category=women-fashion" class="btn btn-outline-light btn-lg">Women's Collection</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+    </button>
+  </div>
+</section>
+
+<!-- ── Trust Badges ────────────────────────────────────────────────────────── -->
+<section class="trust-section py-3">
+  <div class="container">
+    <div class="row g-3 text-center">
+      <div class="col-6 col-md-3">
+        <div class="trust-item"><i class="fas fa-certificate"></i><span>Official Distributors</span></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="trust-item"><i class="fas fa-shield-alt"></i><span>100% Genuine & Authentic</span></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="trust-item"><i class="fas fa-truck"></i><span>Free Shipping in Pakistan</span></div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="trust-item"><i class="fas fa-headset"></i><span>Customer Service Support</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Flash Sale ──────────────────────────────────────────────────────────── -->
+{% if flash_sale %}
+<section class="section-padding flash-sale-section">
+  <div class="container">
+    <div class="section-header d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h2 class="section-title"><i class="fas fa-bolt text-gold me-2"></i>Flash Sale</h2>
+        <p class="section-subtitle">Limited time offers – grab them before they're gone!</p>
+      </div>
+      <div class="countdown-timer" id="flashTimer">
+        <div class="timer-block"><span class="timer-num" id="hours">00</span><small class="timer-label">HRS</small></div>
+        <div class="timer-sep">:</div>
+        <div class="timer-block"><span class="timer-num" id="minutes">00</span><small class="timer-label">MIN</small></div>
+        <div class="timer-sep">:</div>
+        <div class="timer-block"><span class="timer-num" id="seconds">00</span><small class="timer-label">SEC</small></div>
+      </div>
+    </div>
+    <div class="row g-3">
+      {% for p in flash_sale %}
+      <div class="col-6 col-md-4 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Best Sellers ────────────────────────────────────────────────────────── -->
+{% if bestsellers %}
+<section class="section-padding bg-light-custom">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">Best Seller Perfume</h2>
+      <p class="section-subtitle">Our most loved fragrances by our discerning clientele</p>
+    </div>
+    <div class="row g-3">
+      {% for p in bestsellers %}
+      <div class="col-6 col-md-4 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+      <a href="{{ url_for('user.products') }}" class="btn btn-outline-gold btn-lg">View All Products</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Featured Collections ───────────────────────────────────────────────── -->
+<section class="section-padding">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">Featured Collections</h2>
+      <p class="section-subtitle">Explore our curated categories</p>
+    </div>
+    <div class="row g-3">
+      {% for cat in nav_categories[:8] %}
+      <div class="col-6 col-md-4 col-lg-3">
+        <a href="{{ url_for('user.category', slug=cat.slug) }}" class="category-card">
+          <div class="category-icon"><i class="{{ cat.icon }}"></i></div>
+          <span class="category-name">{{ cat.name }}</span>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Featured Products ──────────────────────────────────────────────────── -->
+{% if featured %}
+<section class="section-padding bg-light-custom">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">Featured Products</h2>
+      <p class="section-subtitle">Handpicked premium selections for you</p>
+    </div>
+    <div class="row g-3">
+      {% for p in featured %}
+      <div class="col-6 col-md-4 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── New Arrivals ────────────────────────────────────────────────────────── -->
+{% if new_arrivals %}
+<section class="section-padding">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">New Arrivals</h2>
+      <p class="section-subtitle">Fresh additions to our luxury collection</p>
+    </div>
+    <div class="row g-3">
+      {% for p in new_arrivals %}
+      <div class="col-6 col-md-4 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Premium Products ───────────────────────────────────────────────────── -->
+{% if premium %}
+<section class="section-padding premium-section">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title text-white">Premium Collection</h2>
+      <p class="section-subtitle text-white-50">Luxury at its finest</p>
+    </div>
+    <div class="row g-4">
+      {% for p in premium %}
+      <div class="col-6 col-md-6 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── COD Section ────────────────────────────────────────────────────────── -->
+{% if cod_products %}
+<section class="section-padding">
+  <div class="container">
+    <div class="section-header d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h2 class="section-title"><i class="fas fa-money-bill-wave text-gold me-2"></i>Cash on Delivery Available</h2>
+        <p class="section-subtitle">Order now, pay when delivered</p>
+      </div>
+      <a href="{{ url_for('user.products') }}" class="btn btn-outline-gold">View All</a>
+    </div>
+    <div class="row g-3">
+      {% for p in cod_products %}
+      <div class="col-6 col-md-4 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Free Shipping ──────────────────────────────────────────────────────── -->
+{% if free_ship %}
+<section class="section-padding bg-light-custom">
+  <div class="container">
+    <div class="section-header d-flex align-items-center justify-content-between mb-4">
+      <div>
+        <h2 class="section-title"><i class="fas fa-truck text-gold me-2"></i>Free Shipping</h2>
+        <p class="section-subtitle">No extra charges – delivered to your door</p>
+      </div>
+      <a href="{{ url_for('user.products') }}" class="btn btn-outline-gold">View All</a>
+    </div>
+    <div class="row g-3">
+      {% for p in free_ship %}
+      <div class="col-6 col-md-4 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Limited Edition ────────────────────────────────────────────────────── -->
+{% if limited %}
+<section class="section-padding">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">Limited Edition</h2>
+      <p class="section-subtitle">Exclusive products – once they're gone, they're gone</p>
+    </div>
+    <div class="row g-3">
+      {% for p in limited %}
+      <div class="col-6 col-md-4 col-lg-3">{% include 'partials/product_card.html' %}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- ── Official Partners ───────────────────────────────────────────────────── -->
+<section class="section-padding bg-light-custom">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">Our Official Partners</h2>
+    </div>
+    <div class="brands-slider">
+      {% set brands = ['CREED', 'MEMO PARIS', 'CLIVE CHRISTIAN', 'XERJOFF', 'NISHANE', 'TIZIANA TERENZI', 'VCANTO', 'GIARDINO BENESSERE', 'ORMONDE JAYNE'] %}
+      {% for brand in brands %}
+      <div class="brand-item">{{ brand }}</div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── Testimonials ───────────────────────────────────────────────────────── -->
+<section class="section-padding testimonials-section">
+  <div class="container">
+    <div class="section-header text-center mb-4">
+      <h2 class="section-title">What Our Customers Say</h2>
+    </div>
+    <div id="testimonialCarousel" class="carousel slide" data-bs-ride="carousel">
+      <div class="carousel-inner">
+        <div class="carousel-item active">
+          <div class="row justify-content-center">
+            <div class="col-md-4">
+              <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>"Excellent products really satisfied with the collection and quality of wide range products available."</p>
+                <strong>Pakizah</strong>
+              </div>
+            </div>
+            <div class="col-md-4 d-none d-md-block">
+              <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>"Stay stylish and protected with top-notch jackets, shoes and accessories. Upgrade your wardrobe today with quality and comfort."</p>
+                <strong>Ahmed</strong>
+              </div>
+            </div>
+            <div class="col-md-4 d-none d-md-block">
+              <div class="testimonial-card">
+                <div class="stars">★★★★★</div>
+                <p>"Get the best of both worlds with durable and fashionable outerwear and accessories. Shop now for the ultimate wardrobe upgrade."</p>
+                <strong>Aymen</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Newsletter ─────────────────────────────────────────────────────────── -->
+<section class="newsletter-section">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <h3 class="text-white mb-1">Subscribe to Our Newsletter</h3>
+        <p class="text-white-50 mb-0">Get exclusive offers, new arrivals and luxury lifestyle updates.</p>
+      </div>
+      <div class="col-lg-6 mt-3 mt-lg-0">
+        <form id="footerNewsletter" class="d-flex gap-2">
+          <input type="email" class="form-control form-control-lg" placeholder="Enter your email address" required/>
+          <button class="btn btn-gold btn-lg px-4" type="submit">Subscribe</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Flash sale countdown (24 hours from now)
+(function() {
+  const end = new Date().getTime() + 24*60*60*1000;
+  function update() {
+    const diff = end - new Date().getTime();
+    if (diff <= 0) return;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    const he = document.getElementById('hours');
+    const me = document.getElementById('minutes');
+    const se = document.getElementById('seconds');
+    if (he) he.textContent = String(h).padStart(2,'0');
+    if (me) me.textContent = String(m).padStart(2,'0');
+    if (se) se.textContent = String(s).padStart(2,'0');
+  }
+  update();
+  setInterval(update, 1000);
+})();
+</script>
+{% endblock %}

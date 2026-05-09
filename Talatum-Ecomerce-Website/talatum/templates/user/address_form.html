@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }} – Talatum{% endblock %}
+{% block content %}
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-6">
+      <div class="checkout-card">
+        <h4 class="checkout-section-title mb-4">{{ title }}</h4>
+        <form method="post" novalidate>
+          {{ form.hidden_tag() }}
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ form.label.label(class='form-label') }}
+              {{ form.label(class='form-control') }}
+            </div>
+            <div class="col-md-6">
+              {{ form.full_name.label(class='form-label') }}
+              {{ form.full_name(class='form-control' + (' is-invalid' if form.full_name.errors else '')) }}
+              {% for e in form.full_name.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              {{ form.phone.label(class='form-label') }}
+              {{ form.phone(class='form-control' + (' is-invalid' if form.phone.errors else '')) }}
+              {% for e in form.phone.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              {{ form.address1.label(class='form-label') }}
+              {{ form.address1(class='form-control' + (' is-invalid' if form.address1.errors else '')) }}
+              {% for e in form.address1.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-12">
+              {{ form.address2.label(class='form-label') }}
+              {{ form.address2(class='form-control') }}
+            </div>
+            <div class="col-md-6">
+              {{ form.city.label(class='form-label') }}
+              {{ form.city(class='form-control' + (' is-invalid' if form.city.errors else '')) }}
+              {% for e in form.city.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.state.label(class='form-label') }}
+              {{ form.state(class='form-control' + (' is-invalid' if form.state.errors else '')) }}
+              {% for e in form.state.errors %}<div class="invalid-feedback">{{ e }}</div>{% endfor %}
+            </div>
+            <div class="col-md-6">
+              {{ form.postal_code.label(class='form-label') }}
+              {{ form.postal_code(class='form-control') }}
+            </div>
+            <div class="col-md-6">
+              {{ form.country.label(class='form-label') }}
+              {{ form.country(class='form-control') }}
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                {{ form.is_default(class='form-check-input') }}
+                {{ form.is_default.label(class='form-check-label') }}
+              </div>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-gold mt-4">Save Address</button>
+          <a href="{{ url_for('user.addresses') }}" class="btn btn-outline-secondary mt-4 ms-2">Cancel</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
